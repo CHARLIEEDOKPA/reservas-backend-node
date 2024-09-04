@@ -114,7 +114,7 @@ router.post("/login", async (req, res) => {
   });
 });
 
-router.post("/change-password", checkJWT, userExists, async (req, res) => {
+router.put("/change-password", checkJWT, userExists, async (req, res) => {
   const body = req.body;
   const error = validate(body, changePasswordValidator);
 
