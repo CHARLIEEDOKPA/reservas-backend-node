@@ -35,17 +35,41 @@ const isRoot = (req,res,next) => {
   rol === "root" ? next() : returnErrorResponse(res,401,"Access denied")
 }
 
+const notRoot = (req,res,next) => {
+
+  const token = getToken(req)
+  const {rol} = decodeJWT(token)
+  console.log(rol);
+
+  return rol !== "root" ? next() : returnErrorResponse(res,401,"Access denied")
+}
+
+const isClient = (req,res,next) => {
+  const token = getToken(req)
+  const {rol} = decodeJWT(token)
+
+  rol === "client" ? next() : returnErrorResponse(res,401,"Access denied")
+}
+
+const isAdmin = (req,res,next) => {
+  const token = getToken(req)
+  const {rol} = decodeJWT(token)
+
+  rol === "admin" ? next() : returnErrorResponse(res,401,"Access denied")
+}
+
 const userExists = async(req,res,next) => {
   const token = getToken(req)
-  const {user_id} = decodeJWT(token)
+  const {user_id,email} = decodeJWT(token)
   const user = await Users.findOne({
     where: {
-      user_id:user_id
+      user_id:user_id,
+      email:email
     }
   })
 
-  user? next(): res.status(500).json({status:500,message:"User not found"})
+  user? next(): res.status(500).json({status:500,message:"User not registered"})
 
 }
 
-module.exports = { checkJWT,isRoot,userExists };
+module.exports = { checkJWT,isRoot,userExists,notRoot,isClient,isAdmin };

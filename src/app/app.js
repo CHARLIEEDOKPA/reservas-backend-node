@@ -1,10 +1,15 @@
 const express = require("express");
 const authRouter = require("../router/auth.router");
-const morgan = require("morgan")
+const reservationRouter = require("../router/reservation.router");
+const morgan = require("morgan");
 const app = express();
+const sync = require("../db/sync-db");
 
-app.use(morgan("dev"))
+sync();
+
+app.use(morgan("dev"));
 app.use(express.json());
-app.use("/auth",authRouter);
+app.use("/auth", authRouter);
+app.use("/reservations/", reservationRouter);
 
 module.exports = app;

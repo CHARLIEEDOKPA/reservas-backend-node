@@ -1,5 +1,6 @@
 const { Model, DataTypes } = require("sequelize");
 const { sequelize } = require("../conf/conf");
+const Reservation = require("./reservation.model")
 const bcrypt = require("bcrypt")
 
 class User extends Model {}
@@ -55,14 +56,15 @@ User.init(
   }
 );
 
-const sync = async () => {
-  try {
-    await User.sync({ force: false, alter: false });
-  } catch (error) {
-    console.log(error);
-  }
-};
+User.hasMany(Reservation,{
+  foreignKey:"user_id"
+})
+Reservation.belongsTo(User,{
+  foreignKey:"user_id",
+  targetKey:"user_id"
+});
 
-sync();
+
+
 
 module.exports = User;

@@ -47,4 +47,32 @@ const changePasswordValidator = Joi.object({
   })
 })
 
-module.exports = { registerValidator,loginValidator, changePasswordValidator };
+const reservationValidator = Joi.object({
+  people: Joi.number().min(1).max(4).required(),
+  date: Joi.date().required().greater(new Date()),
+  time: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).required()
+})
+
+
+const userValidator = Joi.object({
+  name: Joi.string().max(NAME_LENGTH).required(),
+  phone: Joi.string()
+    .pattern(/^[0-9]{9}$/)
+    .required()
+    .messages({
+      "string.pattern.base": "Phone number must have exactly 9 digits.",
+      "any.required": "Phone number is required"
+    }),
+  email: Joi.string().email().max(EMAIL_MAX_LENGTH).required().messages({
+    "string.email":"Incorrect email format",
+    "string.max":`The email must be maximum ${EMAIL_MAX_LENGTH}`,
+    "any.require":"The email must be required to registe your account"
+  }),
+  born: Joi.date().required().messages({
+    "any.required":"The born date must be required to register your account"
+  }),
+})
+
+
+
+module.exports = { registerValidator,loginValidator, changePasswordValidator,reservationValidator, userValidator };

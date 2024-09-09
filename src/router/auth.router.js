@@ -2,22 +2,26 @@ const router = require("express").Router();
 const Users = require("../model/user.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { checkJWT, isRoot, userExists } = require("../middlewares/middlewares");
+const {
+  checkJWT,
+  isRoot,
+  userExists,
+  notRoot,
+} = require("../middlewares/middlewares");
 require("dotenv").config();
 
-const { getToken, decodeJWT } = require("../utils/utils");
+const { getToken, decodeJWT, validate } = require("../utils/utils");
 
 const {
   registerValidator,
   loginValidator,
   changePasswordValidator,
+  userValidator,
 } = require("../validator/validators");
+const { Op } = require("sequelize");
 
-
-const JWT_EXPIRATION_TIME = "1440m"
-const JWT_ALGORITHM = "HS256"
-
-
+const JWT_EXPIRATION_TIME = "1440m";
+const JWT_ALGORITHM = "HS256";
 
 const createToken = (user) => {
   const userCopy = { ...user };
@@ -47,7 +51,9 @@ const registerAccount = async (req, res, admin = false) => {
       .json({ status: 400, message: `Email ${email} already exists` });
   }
   body.rol = admin ? "admin" : "client";
-  Users.create(body);
+
+  await Users.create(body);
+
   return res
     .status(201)
     .json({ status: 201, message: "User registered successfully" });
@@ -57,15 +63,6 @@ const removeSensitiveData = (user) => {
   delete user.password;
   delete user.createdAt;
   delete user.updatedAt;
-};
-
-const validate = (body, validator) => {
-  const result = validator.validate(body);
-  if (result.error) {
-    const message = result.error.details[0].message;
-    console.log(result.error.details.map((errDetail) => errDetail.type));
-    return { status: 400, message: message };
-  }
 };
 
 const returnUnauthorizedResponse = (res) =>
@@ -145,11 +142,69 @@ router.put("/change-password", checkJWT, userExists, async (req, res) => {
       where: {
         user_id: user_id,
       },
-      individualHooks:true
+      individualHooks: true,
     }
   );
-  return res.json({status:200,message:"The password has successfully changed"})
+  return res.json({
+    status: 200,
+    message: "The password has successfully changed",
+  });
 });
 
+router.put("/:id", checkJWT, notRoot, userExists, async (req, res) => {
+  const token = getToken(req);
+  const id = parseInt(req.params.id);
+  const { user_id, email } = decodeJWT(token);
+
+  console.log(email);
+
+  if (id !== user_id) {
+    return res
+      .status(401)
+      .json({ status: 401, message: "You cannot edit this account" });
+  }
+
+  const body = req.body;
+
+  const error = validate(body, userValidator);
+
+  if (error) return res.status(400).json(error);
+
+  const bodyEmail = body.email;
+
+  const existedUser = await Users.findOne({
+    where: {
+      email: bodyEmail,
+      user_id: { [Op.ne]: id } 
+    }
+  });
+
+  if (existedUser) {
+    return res
+      .status(400)
+      .json({ status: 400, message: `The email ${bodyEmail} already exists` });
+  }
+
+  await Users.update(body, {
+    where: {
+      user_id: id,
+    },
+  });
+
+  const user = await Users.findOne({
+    where: {
+      user_id: id,
+    },
+  });
+
+  const userData = user.dataValues
+  const newToken = createToken(userData);
+
+  return res.json({
+    status: 200,
+    message: "Your account is successfully updated",
+    body: newToken,
+  });
+});
 
 module.exports = router;
