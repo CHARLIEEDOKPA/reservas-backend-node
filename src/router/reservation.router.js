@@ -9,6 +9,8 @@ const {
 } = require("../middlewares/middlewares");
 const { decodeJWT, getToken, validate } = require("../utils/utils");
 const { reservationValidator } = require("../validator/validators");
+const {sendReservationRequestMessage,sendReservationRejectMessage} = require("../messaging/messaging");
+const User = require("../model/user.model");
 
 const RESERVATIONS_PER_DAY = 1;
 
@@ -24,6 +26,26 @@ const validateReservation = (reservation, user_id) => {
     };
   }
 };
+
+const sendRejectionMessage = async(reservation, accept, id, note) => {
+  const { email } = await User.findOne({
+    where: {
+      user_id: reservation.user_id
+    }
+  });
+
+  if (!accept) {
+    await sendReservationRejectMessage(id, note, email);
+  }
+}
+
+const  updateReservation = async (reservation, body) => {
+  reservation.people = body.people;
+  reservation.date = body.date;
+  reservation.time = body.time;
+  reservation.status = "pending";
+  await reservation.save();
+}
 
 const acceptOrRejectReservation = async (req, res, accept = true) => {
   const setStatus = accept ? "accepted" : "rejected";
@@ -46,22 +68,19 @@ const acceptOrRejectReservation = async (req, res, accept = true) => {
       message: `The reservation is already ${setStatus}`,
     });
 
-  await Reservations.update(
-    {
-      status: setStatus,
-      note: note,
-    },
-    {
-      where: {
-        reservation_id: id,
-      },
-    }
-  );
+  reservation.status = setStatus
+
+  await reservation.save()
+
+  await sendRejectionMessage(reservation, accept, id, note);
+
   return res.json({
     status: 200,
     message: `The reservation is successfully ${setStatus}`,
   });
 };
+
+
 
 router.get("/", checkJWT, userExists, notRoot, async (req, res) => {
   const token = getToken(req);
@@ -85,7 +104,7 @@ router.get("/", checkJWT, userExists, notRoot, async (req, res) => {
 router.post("/", checkJWT, userExists, isClient, async (req, res) => {
   const token = getToken(req);
 
-  const { user_id } = decodeJWT(token);
+  const { user_id,email } = decodeJWT(token);
   const body = req.body;
 
   const error = validate(body, reservationValidator);
@@ -109,7 +128,9 @@ router.post("/", checkJWT, userExists, isClient, async (req, res) => {
 
   const bodyCopy = { ...body, user_id: user_id };
 
-  await Reservations.create(bodyCopy);
+  const reservation = await Reservations.create(bodyCopy);
+
+  await sendReservationRequestMessage(email,reservation)
 
   return res
     .status(201)
@@ -163,19 +184,7 @@ router.put("/:id", checkJWT, userExists, isClient, async (req, res) => {
       .json({ status: 401, message: "You cannot edit this reservation" });
   }
 
-  await Reservations.update(
-    {
-      people: body.people,
-      date: body.date,
-      time: body.time,
-      status: "pending",
-    },
-    {
-      where: {
-        reservation_id: id,
-      },
-    }
-  );
+  await updateReservation(reservation, body);
 
   return res.json({
     status: 200,

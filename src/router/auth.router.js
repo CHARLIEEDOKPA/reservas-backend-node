@@ -134,17 +134,11 @@ router.put("/change-password", checkJWT, userExists, async (req, res) => {
       .status(401)
       .json({ message: "Invalid credentials. Please try again" });
 
-  await Users.update(
-    {
-      password: newPassword,
-    },
-    {
-      where: {
-        user_id: user_id,
-      },
-      individualHooks: true,
-    }
-  );
+ 
+  user.password = newPassword
+  await user.save()
+
+
   return res.json({
     status: 200,
     message: "The password has successfully changed",
