@@ -1,0 +1,91 @@
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+
+      h1 {
+        font-family: "Roboto";
+        color: rgb(46, 163, 36,0.40)
+      }
+
+      img {
+        width: 200px;
+        height: 200px;
+        overflow: auto;
+        border-radius: 99%;
+      }
+
+      #content {
+        border: 5px solid rgb(46, 163, 36,0.40);
+        width: 500px;
+        text-align: center;
+        border-radius: 10px;
+        padding: 10px;
+      }
+
+      hr {
+        border: 5px solid rgb(46, 163, 36,0.40);
+        width: 500px;
+        text-align: center;
+        border-radius: 10px;
+        width: 450px;
+      }
+      h1{
+        font-size: 40px;   
+      }
+
+      #image-wrapper {
+        padding: 20px;
+      }
+      p {
+        font-family: "Roboto";
+        font-size: 25px;
+      }
+
+      button {
+        padding: 10px;
+        background-color: rgb(46, 163, 36,0.40);
+        font-family: 'Roboto';
+        font-size: 25px;
+        border-radius: 10px;
+        border: 0;
+        font-weight: 500;
+        color: white;
+      }
+
+      #button {
+        padding: 20px;
+      }
+    </style>
+    
+  </head>
+
+  <body>
+    <div id="content">
+        <div id="image-wrapper">
+                <img src="cid:silverware@image.cid" alt="">
+                 <!-- <img src="../57345.jpg" alt=""> -->
+        </div>
+        <h1>Reservation request</h1>
+        <hr>
+        <p>You just request a reservation. We will check as soon as posible if there is an available reservation for you.
+            Thank you for your patiente
+        </p>
+        <hr>
+        <h1>Information</h1>
+        <p>Reservation ID: {{reservation_id}}</p>
+        <p>People: {{people}}</p>
+        <p>Status: Pending</p>
+        <p>Date: {{date}}</p>
+        <p>Time: {{time}}</p>
+        <div id="button">
+            <a href="{{link_info}}"><button>More info</button></a>
+            <a href="{{link_change}}"><button>Change</button></a>
+        </div>
+        
+    </div>
+    
+  </body>
+</html>

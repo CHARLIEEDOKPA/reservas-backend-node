@@ -1,0 +1,84 @@
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+
+      h1 {
+        font-family: "Roboto";
+        color: rgb(163, 36, 36,0.40)
+      }
+
+      img {
+        width: 200px;
+        height: 200px;
+        overflow: auto;
+        border-radius: 99%;
+      }
+
+      #content {
+        border: 5px solid rgb(163, 36, 36,0.40);
+        width: 500px;
+        text-align: center;
+        border-radius: 10px;
+        padding: 10px;
+      }
+
+      hr {
+        border: 5px solid rgb(163, 36, 36,0.40);
+        width: 500px;
+        text-align: center;
+        border-radius: 10px;
+        width: 450px;
+      }
+      h1{
+        font-size: 40px;   
+      }
+
+      #image-wrapper {
+        padding: 20px;
+      }
+      p {
+        font-family: "Roboto";
+        font-size: 25px;
+      }
+
+      button {
+        padding: 10px;
+        background-color: rgb(163, 36, 36,0.40);
+        font-family: 'Roboto';
+        font-size: 25px;
+        border-radius: 10px;
+        border: 0;
+        font-weight: 500;
+        color: white;
+      }
+
+      #button {
+        padding: 20px;
+      }
+    </style>
+    
+  </head>
+
+  <body>
+    <div id="content">
+        <div id="image-wrapper">
+                <img src="cid:cross@image.cid" alt="">
+                 <!-- <img src="../white_cross_mark_paint_style_red_background.jpg" alt=""> -->
+        </div>
+        <h1>Reservation rejected</h1>
+        <hr>
+        <p>Your reservation is rejected. Try to change the date and the time or just cancel it</p>
+        <p>Reservation id: </p>
+        <p>{{reason}}</p>
+        <div id="button">
+            <a href="{{link_info}}"><button>More info</button></a>
+            <a href="{{link_change}}"><button>Change</button></a>
+        </div>
+        
+    </div>
+    
+  </body>
+</html>

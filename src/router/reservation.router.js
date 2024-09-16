@@ -9,7 +9,7 @@ const {
 } = require("../middlewares/middlewares");
 const { decodeJWT, getToken, validate } = require("../utils/utils");
 const { reservationValidator } = require("../validator/validators");
-const {sendReservationRequestMessage,sendReservationRejectMessage} = require("../messaging/messaging");
+const {sendReservationRequestMessage,sendReservationRejectMessage,sendReservationAcceptMessage, sendReservationUpdatingMessage} = require("../messaging/messaging");
 const User = require("../model/user.model");
 
 const RESERVATIONS_PER_DAY = 1;
@@ -27,16 +27,14 @@ const validateReservation = (reservation, user_id) => {
   }
 };
 
-const sendRejectionMessage = async(reservation, accept, id, note) => {
+const sendRejectionOrAcceptMessage = async(reservation, accept, note) => {
   const { email } = await User.findOne({
     where: {
       user_id: reservation.user_id
     }
   });
 
-  if (!accept) {
-    await sendReservationRejectMessage(id, note, email);
-  }
+  accept ? await sendReservationAcceptMessage(reservation,note,email) : await sendReservationRejectMessage(reservation, note, email);
 }
 
 const  updateReservation = async (reservation, body) => {
@@ -44,6 +42,7 @@ const  updateReservation = async (reservation, body) => {
   reservation.date = body.date;
   reservation.time = body.time;
   reservation.status = "pending";
+  reservation.note = ""
   await reservation.save();
 }
 
@@ -71,8 +70,13 @@ const acceptOrRejectReservation = async (req, res, accept = true) => {
   reservation.status = setStatus
 
   await reservation.save()
-
-  await sendRejectionMessage(reservation, accept, id, note);
+    try {
+      await sendRejectionOrAcceptMessage(reservation, accept, note);
+    } catch (error) {
+      console.log("Error to send message");
+      
+    }
+ 
 
   return res.json({
     status: 200,
@@ -129,8 +133,13 @@ router.post("/", checkJWT, userExists, isClient, async (req, res) => {
   const bodyCopy = { ...body, user_id: user_id };
 
   const reservation = await Reservations.create(bodyCopy);
-
-  await sendReservationRequestMessage(email,reservation)
+  try {
+    await sendReservationRequestMessage(email,reservation)
+  } catch (error) {
+    console.log("Error to send message");
+    
+  }
+ 
 
   return res
     .status(201)
@@ -171,7 +180,7 @@ router.put("/:id", checkJWT, userExists, isClient, async (req, res) => {
   }
 
   const token = getToken(req);
-  const { user_id } = decodeJWT(token);
+  const { user_id, email } = decodeJWT(token);
   const body = req.body;
 
   const error = validate(body, reservationValidator);
@@ -185,6 +194,14 @@ router.put("/:id", checkJWT, userExists, isClient, async (req, res) => {
   }
 
   await updateReservation(reservation, body);
+
+  try {
+    await sendReservationUpdatingMessage(reservation,email)
+  } catch (error) {
+    console.log("Error to send a message");
+    
+  }
+  
 
   return res.json({
     status: 200,
