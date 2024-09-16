@@ -11,5 +11,6 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use("/auth", authRouter);
 app.use("/reservations/", reservationRouter);
+app.all("*", (req,res) => res.status(404).json({status:404,message:`Endpoint ${req.path} does not exists`}))
 
 module.exports = app;
