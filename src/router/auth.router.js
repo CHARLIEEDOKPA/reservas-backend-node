@@ -201,4 +201,19 @@ router.put("/:id", checkJWT, notRoot, userExists, async (req, res) => {
   });
 });
 
+router.get("users",checkJWT,userExists,isRoot,async (req,res) => {
+  const users = await Users.findAll({
+    where: {
+      [Op.ne] : "root"
+    }
+  })
+  const mappedUsers =  users.map(u => {
+    delete u.password
+    return u
+  })
+
+  return res.json({status:200,body:mappedUsers})
+})
+
+
 module.exports = router;
